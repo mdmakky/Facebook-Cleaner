@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "Facebook Cleaner",
+  "version": "1.0",
+  "description": "Hide People You May Know and unwanted Facebook elements",
+  "permissions": ["*://www.facebook.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://www.facebook.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+        "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png"
+    }
+}

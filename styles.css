@@ -1,0 +1,15 @@
+/* HIDE LEFT RAIL, RIGHT RAIL & REELS */
+div[data-pagelet^="LeftRail"],
+div[data-pagelet="RightRail"],
+aside[role="complementary"],
+div[aria-label="Reels"],
+div[aria-label="Reels and short videos"],
+div[data-pagelet="ReelsTrayContainer"],
+div[data-pagelet^="VideoReelsChannel_"],
+div[data-pagelet^="FeedUnit_Reel"],
+div[data-pagelet="ReelStoriesTray"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}

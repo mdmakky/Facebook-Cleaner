@@ -1,10 +1,12 @@
 // Load current settings and update UI
 document.addEventListener('DOMContentLoaded', function() {
     // Load settings from storage
-    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideSponsored'], function(result) {
+    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts'], function(result) {
         document.getElementById('hidePeopleYouMayKnow').checked = result.hidePeopleYouMayKnow !== false;
         document.getElementById('hideReels').checked = result.hideReels !== false;
-        document.getElementById('hideSponsored').checked = result.hideSponsored === true;
+        document.getElementById('hideFriendRequests').checked = result.hideFriendRequests === true;
+        document.getElementById('hideBirthdays').checked = result.hideBirthdays === true;
+        document.getElementById('hideContacts').checked = result.hideContacts === true;
     });
     
     // Add click event listeners to all setting rows
@@ -18,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add change event listeners to checkboxes
-    const checkboxes = ['hidePeopleYouMayKnow', 'hideReels', 'hideSponsored'];
+    const checkboxes = ['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts'];
     checkboxes.forEach(function(id) {
         const checkbox = document.getElementById(id);
         if (checkbox) {
@@ -33,7 +35,9 @@ function saveSettings() {
     const settings = {
         hidePeopleYouMayKnow: document.getElementById('hidePeopleYouMayKnow').checked,
         hideReels: document.getElementById('hideReels').checked,
-        hideSponsored: document.getElementById('hideSponsored').checked
+        hideFriendRequests: document.getElementById('hideFriendRequests').checked,
+        hideBirthdays: document.getElementById('hideBirthdays').checked,
+        hideContacts: document.getElementById('hideContacts').checked
     };
     
     // Save to storage

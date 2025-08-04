@@ -11,10 +11,11 @@
         
         body {
             width: 350px;
+            max-height: 500px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
-            overflow: hidden;
+            overflow-y: auto;
         }
         
         .container {
@@ -300,14 +301,38 @@
                 </div>
             </div>
             
-            <div class="setting" data-setting="hideSponsored">
-                <div class="setting-icon">💰</div>
+            <div class="setting" data-setting="hideFriendRequests">
+                <div class="setting-icon">🤝</div>
                 <div class="setting-content">
-                    <div class="setting-title">Sponsored Content</div>
-                    <div class="setting-description">Hide ads and promotions</div>
+                    <div class="setting-title">Friend Requests</div>
+                    <div class="setting-description">Hide friend request section</div>
                 </div>
                 <div class="toggle-switch">
-                    <input type="checkbox" id="hideSponsored">
+                    <input type="checkbox" id="hideFriendRequests">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideBirthdays">
+                <div class="setting-icon">🎂</div>
+                <div class="setting-content">
+                    <div class="setting-title">Birthdays</div>
+                    <div class="setting-description">Hide birthday notifications</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideBirthdays">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideContacts">
+                <div class="setting-icon">📞</div>
+                <div class="setting-content">
+                    <div class="setting-title">Contacts</div>
+                    <div class="setting-description">Hide contacts section</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideContacts">
                     <span class="slider"></span>
                 </div>
             </div>

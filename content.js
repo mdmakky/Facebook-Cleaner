@@ -2,16 +2,20 @@
 const settings = {
     hidePeopleYouMayKnow: true,
     hideReels: true,
-    hideSponsored: false
+    hideFriendRequests: false,
+    hideBirthdays: false,
+    hideContacts: false
 };
 
 // Load settings from chrome extension storage
 function loadSettings() {
     if (typeof chrome !== 'undefined' && chrome.storage) {
-        chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideSponsored'], (result) => {
+        chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts'], (result) => {
             settings.hidePeopleYouMayKnow = result.hidePeopleYouMayKnow !== undefined ? result.hidePeopleYouMayKnow : true;
             settings.hideReels = result.hideReels !== undefined ? result.hideReels : true;
-            settings.hideSponsored = result.hideSponsored !== undefined ? result.hideSponsored : false;
+            settings.hideFriendRequests = result.hideFriendRequests !== undefined ? result.hideFriendRequests : false;
+            settings.hideBirthdays = result.hideBirthdays !== undefined ? result.hideBirthdays : false;
+            settings.hideContacts = result.hideContacts !== undefined ? result.hideContacts : false;
             hideFacebookNoise();
         });
     } else {
@@ -47,28 +51,35 @@ function showAllHiddenElements() {
 
 function hideSectionByHeader(headerText) {
     // Search common header tags for the section label
-    document.querySelectorAll('span, strong, h2, h3, a').forEach(label => {
+    document.querySelectorAll('span, strong, h2, h3, h4, a, div').forEach(label => {
         if (label.innerText && label.innerText.trim().toLowerCase() === headerText.toLowerCase()) {
             // Go up DOM to find the card/container
             let container = label;
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 8; i++) { // Increased traversal depth
                 container = container.parentElement;
                 if (!container) break;
                 
                 // Safety check: don't hide main containers
                 if (container.getAttribute('role') === 'main' || 
                     container.id === 'content' ||
+                    container.tagName === 'BODY' ||
                     container.classList.contains('fb_content')) {
                     break;
                 }
                 
+                // Make sure this container is specifically for this section
+                const containerText = (container.innerText || container.textContent || '').toLowerCase();
+                const isCorrectSection = containerText.includes(headerText.toLowerCase());
+                
                 // Look for boundaries: data-pagelet, role=region, or large divs
-                if (
+                if (isCorrectSection && (
                     container.dataset.pagelet ||
                     (container.getAttribute && container.getAttribute('role') === 'region') ||
-                    (container.tagName === 'DIV' && container.childElementCount > 2 && container.offsetHeight < 800)
-                ) {
+                    (container.tagName === 'DIV' && container.childElementCount > 1 && 
+                     container.offsetHeight > 50 && container.offsetHeight < 600)
+                )) {
                     container.style.display = 'none';
+                    console.log(`Hidden ${headerText} section by header:`, container);
                     break;
                 }
             }
@@ -132,71 +143,177 @@ function hideReels() {
     }
 }
 
-// Hide sponsored content
-function hideSponsoredContent() {
-    if (!settings.hideSponsored) return;
+// Enhanced function to hide Friend Requests section
+function hideFriendRequestsSection() {
+    if (!settings.hideFriendRequests) return;
     
-    // Find all text nodes containing "Sponsored"
-    const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-    
-    let textNode;
-    while (textNode = walker.nextNode()) {
-        const text = textNode.textContent.trim();
-        if (text === 'Sponsored' || text === 'Promoted' || text === 'Ad') {
-            // Find the post container by going up the DOM
-            let container = textNode.parentElement;
-            for (let i = 0; i < 12; i++) {
-                if (!container) break;
-                
-                // Safety check: don't hide main containers
-                if (container.getAttribute('role') === 'main' || 
-                    container.id === 'content') {
-                    break;
-                }
-                
-                // Look for post containers
-                if (
-                    container.dataset.pagelet ||
-                    container.getAttribute('role') === 'article' ||
-                    container.getAttribute('data-ft') ||
-                    container.querySelector('[data-testid]') ||
-                    (container.tagName === 'DIV' && container.offsetHeight > 100 && container.offsetHeight < 1000)
-                ) {
-                    container.style.display = 'none';
-                    console.log('Hidden sponsored content:', container);
-                    break;
-                }
+    // Method 1: Find any element containing "Friend requests" text
+    document.querySelectorAll('*').forEach(element => {
+        const text = element.innerText || element.textContent || '';
+        if (text.includes('Friend requests') || text.includes('friend requests')) {
+            let container = element;
+            // Try different traversal depths
+            for (let i = 0; i < 8; i++) {
+                if (!container || !container.parentElement) break;
                 container = container.parentElement;
+                
+                // Safety checks
+                if (container.getAttribute('role') === 'main' || 
+                    container.id === 'content' ||
+                    container.tagName === 'BODY' ||
+                    container.classList.contains('fb_content')) {
+                    break;
+                }
+                
+                // Check if this container has the friend requests content
+                const containerText = (container.innerText || container.textContent || '').toLowerCase();
+                if (containerText.includes('friend request') && 
+                    container.offsetHeight > 80 && 
+                    container.offsetHeight < 500 &&
+                    !containerText.includes('birthday')) {
+                    container.style.display = 'none';
+                    console.log('Hidden Friend Requests section:', container);
+                    return;
+                }
             }
         }
-    }
+    });
+    
+    // Method 2: Look for common friend request patterns
+    const friendRequestSelectors = [
+        '[data-pagelet*="friend"]',
+        '[data-testid*="friend"]',
+        '[aria-label*="friend request"]',
+        '[aria-label*="Friend request"]'
+    ];
+    
+    friendRequestSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(element => {
+            if (element.offsetHeight > 50 && element.offsetHeight < 400) {
+                element.style.display = 'none';
+                console.log('Hidden Friend Requests by selector:', selector, element);
+            }
+        });
+    });
+}
+
+// Enhanced function to hide Contacts section
+function hideContactsSection() {
+    if (!settings.hideContacts) return;
+    
+    // Method 1: Find any element containing "Contacts" text
+    document.querySelectorAll('*').forEach(element => {
+        const text = element.innerText || element.textContent || '';
+        if (text.includes('Contacts') && text.length < 50) { // Short text to avoid hiding entire posts
+            let container = element;
+            // Try different traversal depths
+            for (let i = 0; i < 8; i++) {
+                if (!container || !container.parentElement) break;
+                container = container.parentElement;
+                
+                // Safety checks
+                if (container.getAttribute('role') === 'main' || 
+                    container.id === 'content' ||
+                    container.tagName === 'BODY' ||
+                    container.classList.contains('fb_content')) {
+                    break;
+                }
+                
+                // Check if this container has contacts content
+                const containerText = (container.innerText || container.textContent || '').toLowerCase();
+                const hasContactImages = container.querySelectorAll('img, [role="img"]').length;
+                
+                if (containerText.includes('contacts') && 
+                    container.offsetHeight > 100 && 
+                    container.offsetHeight < 600 &&
+                    hasContactImages > 1) {
+                    container.style.display = 'none';
+                    console.log('Hidden Contacts section:', container);
+                    return;
+                }
+            }
+        }
+    });
+    
+    // Method 2: Look for contact-related selectors
+    const contactSelectors = [
+        '[data-pagelet*="contact"]',
+        '[data-testid*="contact"]',
+        '[aria-label*="contact"]',
+        '[aria-label*="Contact"]',
+        '[data-testid*="messenger"]'
+    ];
+    
+    contactSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(element => {
+            // Check if it's a container with multiple contacts
+            if (element.children.length > 2 && 
+                element.offsetHeight > 100 && 
+                element.offsetHeight < 500) {
+                element.style.display = 'none';
+                console.log('Hidden Contacts by selector:', selector, element);
+            }
+        });
+    });
+    
+    // Method 3: Look for sidebar widgets with "See all" text and contact lists
+    document.querySelectorAll('div').forEach(element => {
+        const text = element.innerText || element.textContent || '';
+        if (text.includes('Contacts') && 
+            (text.includes('See all') || text.includes('Active')) &&
+            element.querySelectorAll('img').length > 2) {
+            if (element.offsetHeight > 150 && element.offsetHeight < 600) {
+                element.style.display = 'none';
+                console.log('Hidden Contacts sidebar widget:', element);
+            }
+        }
+    });
 }
 
 // Hide sections based on settings
 function hideFacebookNoise() {
-    if (settings.hidePeopleYouMayKnow) {
-        hideSectionByHeader('People you may know');
-    }
-    if (settings.hideReels) {
-        hideSectionByHeader('Reels');
-        hideReels(); // Additional Reels hiding
-    }
-    if (settings.hideSponsored) {
-        hideSponsoredContent();
+    try {
+        console.log('Facebook Cleaner: Starting to hide sections with settings:', settings);
+        
+        if (settings.hidePeopleYouMayKnow) {
+            hideSectionByHeader('People you may know');
+        }
+        if (settings.hideReels) {
+            hideSectionByHeader('Reels');
+            hideReels(); // Additional Reels hiding
+        }
+        if (settings.hideFriendRequests) {
+            console.log('Facebook Cleaner: Attempting to hide Friend Requests');
+            hideSectionByHeader('Friend requests');
+            hideFriendRequestsSection(); // Enhanced friend requests hiding
+        }
+        if (settings.hideBirthdays) {
+            hideSectionByHeader('Birthdays');
+        }
+        if (settings.hideContacts) {
+            console.log('Facebook Cleaner: Attempting to hide Contacts');
+            hideSectionByHeader('Contacts');
+            hideContactsSection(); // Enhanced contacts hiding
+        }
+        
+        console.log('Facebook Cleaner: Finished hiding sections');
+    } catch (error) {
+        console.error('Facebook Cleaner error:', error);
     }
 }
 
 // Initialize extension and load settings
 loadSettings();
 
-// Run on DOM changes
+// Run immediately when page loads
+setTimeout(() => {
+    hideFacebookNoise();
+}, 1000);
+
+// Run on DOM changes with more aggressive monitoring
 const observer = new MutationObserver(() => {
-    if (settings.hidePeopleYouMayKnow || settings.hideReels || settings.hideSponsored) {
+    if (settings.hidePeopleYouMayKnow || settings.hideReels || 
+        settings.hideFriendRequests || settings.hideBirthdays || settings.hideContacts) {
         hideFacebookNoise();
     }
 });

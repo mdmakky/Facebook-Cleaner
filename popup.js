@@ -1,13 +1,17 @@
 // Load current settings and update UI
 document.addEventListener('DOMContentLoaded', function() {
     // Load settings from storage
-    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar'], function(result) {
+    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar', 'hideWatch', 'hideMarketplace', 'hideGroups', 'hideGaming'], function(result) {
         document.getElementById('hidePeopleYouMayKnow').checked = result.hidePeopleYouMayKnow !== false;
         document.getElementById('hideReels').checked = result.hideReels !== false;
         document.getElementById('hideFriendRequests').checked = result.hideFriendRequests === true;
         document.getElementById('hideBirthdays').checked = result.hideBirthdays === true;
         document.getElementById('hideContacts').checked = result.hideContacts === true;
         document.getElementById('hideLeftSidebar').checked = result.hideLeftSidebar !== false;
+        document.getElementById('hideWatch').checked = result.hideWatch === true;
+        document.getElementById('hideMarketplace').checked = result.hideMarketplace === true;
+        document.getElementById('hideGroups').checked = result.hideGroups === true;
+        document.getElementById('hideGaming').checked = result.hideGaming === true;
     });
     
     // Add click event listeners to all setting rows
@@ -21,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add change event listeners to checkboxes
-    const checkboxes = ['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar'];
+    const checkboxes = ['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar', 'hideWatch', 'hideMarketplace', 'hideGroups', 'hideGaming'];
     checkboxes.forEach(function(id) {
         const checkbox = document.getElementById(id);
         if (checkbox) {
@@ -39,7 +43,11 @@ function saveSettings() {
         hideFriendRequests: document.getElementById('hideFriendRequests').checked,
         hideBirthdays: document.getElementById('hideBirthdays').checked,
         hideContacts: document.getElementById('hideContacts').checked,
-        hideLeftSidebar: document.getElementById('hideLeftSidebar').checked
+        hideLeftSidebar: document.getElementById('hideLeftSidebar').checked,
+        hideWatch: document.getElementById('hideWatch').checked,
+        hideMarketplace: document.getElementById('hideMarketplace').checked,
+        hideGroups: document.getElementById('hideGroups').checked,
+        hideGaming: document.getElementById('hideGaming').checked
     };
     
     // Save to storage

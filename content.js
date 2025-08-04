@@ -5,7 +5,11 @@ const settings = {
     hideFriendRequests: false,
     hideBirthdays: false,
     hideContacts: false,
-    hideLeftSidebar: true // New setting for left sidebar cleanup
+    hideLeftSidebar: true, // New setting for left sidebar cleanup
+    hideWatch: false,      // Hide Watch from top navigation
+    hideMarketplace: false, // Hide Marketplace from top navigation
+    hideGroups: false,     // Hide Groups from top navigation
+    hideGaming: false      // Hide Gaming from top navigation
 };
 
 // Add debug logging to check if script is running
@@ -19,7 +23,7 @@ function loadSettings() {
     
     if (typeof chrome !== 'undefined' && chrome.storage) {
         console.log('Facebook Cleaner: Chrome storage API available');
-        chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar'], (result) => {
+        chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar', 'hideWatch', 'hideMarketplace', 'hideGroups', 'hideGaming'], (result) => {
             console.log('Facebook Cleaner: Loaded settings from storage:', result);
             
             settings.hidePeopleYouMayKnow = result.hidePeopleYouMayKnow !== undefined ? result.hidePeopleYouMayKnow : true;
@@ -28,6 +32,10 @@ function loadSettings() {
             settings.hideBirthdays = result.hideBirthdays !== undefined ? result.hideBirthdays : false;
             settings.hideContacts = result.hideContacts !== undefined ? result.hideContacts : false;
             settings.hideLeftSidebar = result.hideLeftSidebar !== undefined ? result.hideLeftSidebar : true;
+            settings.hideWatch = result.hideWatch !== undefined ? result.hideWatch : false;
+            settings.hideMarketplace = result.hideMarketplace !== undefined ? result.hideMarketplace : false;
+            settings.hideGroups = result.hideGroups !== undefined ? result.hideGroups : false;
+            settings.hideGaming = result.hideGaming !== undefined ? result.hideGaming : false;
             
             console.log('Facebook Cleaner: Final settings:', settings);
             
@@ -526,6 +534,24 @@ function hideFacebookNoise() {
             hideLeftSidebarSections(); // Clean up left sidebar
         }
         
+        // Hide top navigation elements (except home)
+        if (settings.hideWatch) {
+            console.log('Facebook Cleaner: Attempting to hide Watch tab');
+            hideTopNavElement('Watch');
+        }
+        if (settings.hideMarketplace) {
+            console.log('Facebook Cleaner: Attempting to hide Marketplace tab');
+            hideTopNavElement('Marketplace');
+        }
+        if (settings.hideGroups) {
+            console.log('Facebook Cleaner: Attempting to hide Groups tab');
+            hideTopNavElement('Groups');
+        }
+        if (settings.hideGaming) {
+            console.log('Facebook Cleaner: Attempting to hide Gaming tab');
+            hideTopNavElement('Gaming');
+        }
+        
         console.log('Facebook Cleaner: Finished hiding sections');
     } catch (error) {
         console.error('Facebook Cleaner error:', error);
@@ -651,6 +677,73 @@ const observer = new MutationObserver((mutations) => {
         }, 500);
     }
 });
+
+// Function to hide top navigation elements (except home)
+function hideTopNavElement(elementName) {
+    console.log(`Facebook Cleaner: Looking for top nav element: ${elementName}`);
+    
+    // Method 1: Look for navigation links by aria-label or text
+    const navSelectors = [
+        `a[aria-label*="${elementName}" i]`,
+        `a[href*="${elementName.toLowerCase()}"]`,
+        `div[role="navigation"] a[aria-label*="${elementName}" i]`,
+        `nav a[aria-label*="${elementName}" i]`
+    ];
+    
+    navSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            // Check if this is in the top navigation (not sidebar)
+            const rect = element.getBoundingClientRect();
+            if (rect.top < 100 && rect.left > 100) { // Top area, not far left
+                console.log(`Facebook Cleaner: Hiding top nav ${elementName} via selector:`, selector, element);
+                element.style.display = 'none';
+                
+                // Also hide parent if it's a list item or navigation container
+                let parent = element.parentElement;
+                while (parent && parent.tagName && ['LI', 'DIV'].includes(parent.tagName.toUpperCase())) {
+                    const parentRect = parent.getBoundingClientRect();
+                    if (parentRect.width < 200 && parentRect.height < 100) { // Small container, likely a nav item
+                        parent.style.display = 'none';
+                        console.log(`Facebook Cleaner: Also hiding parent container for ${elementName}:`, parent);
+                        break;
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+        });
+    });
+    
+    // Method 2: Look by text content in the top navigation area
+    const textElements = document.querySelectorAll('a, span, div');
+    textElements.forEach(element => {
+        if (element.textContent && element.textContent.trim().toLowerCase() === elementName.toLowerCase()) {
+            const rect = element.getBoundingClientRect();
+            // Check if it's in the top navigation area
+            if (rect.top < 100 && rect.left > 100 && rect.left < window.innerWidth - 100) {
+                console.log(`Facebook Cleaner: Hiding top nav ${elementName} by text content:`, element);
+                
+                // Find the clickable parent (usually an 'a' tag or interactive div)
+                let clickableParent = element;
+                while (clickableParent && !['A', 'BUTTON'].includes(clickableParent.tagName)) {
+                    clickableParent = clickableParent.parentElement;
+                    if (!clickableParent) break;
+                }
+                
+                if (clickableParent) {
+                    clickableParent.style.display = 'none';
+                    
+                    // Also hide the list item container if exists
+                    let listItem = clickableParent.closest('li, [role="tab"], [role="menuitem"]');
+                    if (listItem) {
+                        listItem.style.display = 'none';
+                        console.log(`Facebook Cleaner: Also hiding list container for ${elementName}:`, listItem);
+                    }
+                }
+            }
+        }
+    });
+}
 
 // Start observing with more specific options
 if (document.body) {

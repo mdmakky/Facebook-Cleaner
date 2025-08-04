@@ -8,25 +8,49 @@ const settings = {
     hideLeftSidebar: true // New setting for left sidebar cleanup
 };
 
+// Add debug logging to check if script is running
+console.log('Facebook Cleaner: Content script loaded successfully!');
+console.log('Facebook Cleaner: Current URL:', window.location.href);
+console.log('Facebook Cleaner: Document ready state:', document.readyState);
+
 // Load settings from chrome extension storage
 function loadSettings() {
+    console.log('Facebook Cleaner: Loading settings...');
+    
     if (typeof chrome !== 'undefined' && chrome.storage) {
+        console.log('Facebook Cleaner: Chrome storage API available');
         chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar'], (result) => {
+            console.log('Facebook Cleaner: Loaded settings from storage:', result);
+            
             settings.hidePeopleYouMayKnow = result.hidePeopleYouMayKnow !== undefined ? result.hidePeopleYouMayKnow : true;
             settings.hideReels = result.hideReels !== undefined ? result.hideReels : true;
             settings.hideFriendRequests = result.hideFriendRequests !== undefined ? result.hideFriendRequests : false;
             settings.hideBirthdays = result.hideBirthdays !== undefined ? result.hideBirthdays : false;
             settings.hideContacts = result.hideContacts !== undefined ? result.hideContacts : false;
             settings.hideLeftSidebar = result.hideLeftSidebar !== undefined ? result.hideLeftSidebar : true;
-            hideFacebookNoise();
+            
+            console.log('Facebook Cleaner: Final settings:', settings);
+            
+            // Run after settings are loaded
+            setTimeout(() => {
+                hideFacebookNoise();
+            }, 1000);
         });
     } else {
+        console.log('Facebook Cleaner: Chrome storage API not available, using fallback');
         // Fallback to localStorage if chrome API not available
         const saved = localStorage.getItem('facebook-cleaner-settings');
         if (saved) {
             Object.assign(settings, JSON.parse(saved));
+            console.log('Facebook Cleaner: Loaded settings from localStorage:', settings);
+        } else {
+            console.log('Facebook Cleaner: No saved settings, using defaults:', settings);
         }
-        hideFacebookNoise();
+        
+        // Run after settings are loaded
+        setTimeout(() => {
+            hideFacebookNoise();
+        }, 1000);
     }
 }
 
@@ -52,9 +76,18 @@ function showAllHiddenElements() {
 }
 
 function hideSectionByHeader(headerText) {
+    console.log(`Facebook Cleaner: Looking for section with header: "${headerText}"`);
+    
     // Search common header tags for the section label
-    document.querySelectorAll('span, strong, h2, h3, h4, a, div').forEach(label => {
+    const elements = document.querySelectorAll('span, strong, h2, h3, h4, a, div');
+    console.log(`Facebook Cleaner: Found ${elements.length} potential header elements`);
+    
+    let foundElements = 0;
+    elements.forEach(label => {
         if (label.innerText && label.innerText.trim().toLowerCase() === headerText.toLowerCase()) {
+            foundElements++;
+            console.log(`Facebook Cleaner: Found matching header "${headerText}":`, label);
+            
             // Go up DOM to find the card/container
             let container = label;
             for (let i = 0; i < 8; i++) { // Increased traversal depth
@@ -66,6 +99,7 @@ function hideSectionByHeader(headerText) {
                     container.id === 'content' ||
                     container.tagName === 'BODY' ||
                     container.classList.contains('fb_content')) {
+                    console.log(`Facebook Cleaner: Stopping traversal at safe container for ${headerText}`);
                     break;
                 }
                 
@@ -81,12 +115,14 @@ function hideSectionByHeader(headerText) {
                      container.offsetHeight > 50 && container.offsetHeight < 600)
                 )) {
                     container.style.display = 'none';
-                    console.log(`Hidden ${headerText} section by header:`, container);
+                    console.log(`Facebook Cleaner: Successfully hidden ${headerText} section:`, container);
                     break;
                 }
             }
         }
     });
+    
+    console.log(`Facebook Cleaner: Found ${foundElements} matching elements for "${headerText}"`);
 }
 
 // Specific function to hide Reels
@@ -278,184 +314,196 @@ function hideLeftSidebarSections() {
     
     console.log('Facebook Cleaner: Cleaning left sidebar...');
     
-    // Method 1: Target the left sidebar navigation items
-    document.querySelectorAll('div').forEach(element => {
-        // Check if this looks like a left sidebar element
+    // Method 0: Target specific left sidebar navigation by common patterns
+    document.querySelectorAll('div[role="navigation"] a, nav a, div[data-pagelet*="left"] a').forEach(element => {
+        const text = (element.innerText || element.textContent || '').toLowerCase().trim();
         const rect = element.getBoundingClientRect();
-        const isLeftSide = rect.left < window.innerWidth * 0.4; // Elements on the left 40% of screen
         
-        if (isLeftSide && element.offsetHeight > 30 && element.offsetHeight < 200) {
-            const text = (element.innerText || element.textContent || '').toLowerCase();
-            
-            // Preserve these sections
-            const shouldPreserve = (
-                text.includes('md. arafatuzzaman') || // Your name/profile
-                text.includes('friends') || // Friends section 
-                text.includes('your shortcuts') ||
-                text.includes('shortcuts') ||
-                text.includes('home') ||
-                text.length < 5 // Very short text, might be important
-            );
-            
-            // Hide these sections
-            const shouldHide = (
-                text.includes('professional dashboard') ||
-                text.includes('groups') ||
-                text.includes('video') ||
-                text.includes('feeds') ||
-                text.includes('marketplace') ||
-                text.includes('see more') ||
-                text.includes('pages') ||
-                text.includes('gaming') ||
-                text.includes('events') ||
-                text.includes('memories') ||
-                text.includes('saved') ||
-                text.includes('climate science') ||
-                text.includes('recent') ||
-                text.includes('most recent') ||
-                text.includes('ad preferences') ||
-                text.includes('fundraisers')
-            );
-            
-            if (shouldHide && !shouldPreserve) {
-                element.style.display = 'none';
-                console.log('Hidden left sidebar element:', text.substring(0, 50), element);
+        // Skip if not in left sidebar area or too high (top nav)
+        if (rect.left > window.innerWidth * 0.3 || rect.top < 120) {
+            return;
+        }
+        
+        // Items to definitely hide
+        const shouldHide = [
+            'groups', 'pages', 'marketplace', 'gaming', 'video', 'events', 
+            'memories', 'saved', 'see more', 'climate science information hub',
+            'ad preferences', 'fundraisers', 'recent ad activity', 'blood donations',
+            'crisis response', 'community help', 'emotional health', 'favorites',
+            'feeds', 'most recent', 'live videos'
+        ].some(item => text.includes(item));
+        
+        // Items to preserve
+        const shouldPreserve = [
+            'md. arafatuzzaman', 'friends', 'home', 'shortcuts', 'your shortcuts'
+        ].some(item => text.includes(item));
+        
+        if (shouldHide && !shouldPreserve && text.length > 2) {
+            // Hide the parent container that includes the icon and text
+            let container = element;
+            for (let i = 0; i < 4; i++) {
+                const parent = container.parentElement;
+                if (!parent) break;
+                
+                // Don't go too high in the DOM
+                if (parent.tagName === 'BODY' || 
+                    parent.getAttribute('role') === 'main' ||
+                    parent.getAttribute('role') === 'banner') {
+                    break;
+                }
+                
+                container = parent;
+                
+                // Stop if we find a good container
+                if (container.offsetHeight > 30 && container.offsetHeight < 100) {
+                    break;
+                }
             }
+            
+            container.style.display = 'none';
+            console.log(`Facebook Cleaner: Hidden left sidebar item: "${text}"`, container);
         }
     });
     
-    // Method 2: Hide specific left sidebar menu items by text content
-    const leftSidebarItemsToHide = [
-        'Professional dashboard',
-        'Groups',
-        'Video', 
-        'Feeds',
-        'Marketplace',
-        'See more',
-        'Pages',
-        'Gaming',
-        'Events',
-        'Memories',
-        'Saved',
-        'Recent',
-        'Ad preferences',
-        'Fundraisers'
+    // Method 1: More aggressive text-based hiding for left sidebar items
+    const leftSidebarTextsToHide = [
+        'Groups', 'Pages', 'Marketplace', 'Gaming', 'Video', 'Events', 
+        'Memories', 'Saved', 'See more', 'See More', 'Climate Science Information Hub',
+        'Ad preferences', 'Fundraisers', 'Recent ad activity', 'Blood donations',
+        'Crisis response', 'Community help', 'Emotional health', 'Favorites',
+        'Feeds', 'Most recent', 'Live videos', 'Messenger Kids'
     ];
     
-    leftSidebarItemsToHide.forEach(itemName => {
+    leftSidebarTextsToHide.forEach(targetText => {
         document.querySelectorAll('*').forEach(element => {
-            const text = element.innerText || element.textContent || '';
-            if (text.trim() === itemName) {
-                let container = element;
-                for (let i = 0; i < 6; i++) {
-                    if (!container || !container.parentElement) break;
-                    container = container.parentElement;
-                    
-                    // Safety checks
-                    if (container.getAttribute('role') === 'main' || 
-                        container.tagName === 'BODY') {
-                        break;
+            const text = (element.innerText || element.textContent || '').trim();
+            
+            // Exact match or very close match
+            if (text === targetText || text.toLowerCase() === targetText.toLowerCase()) {
+                const rect = element.getBoundingClientRect();
+                
+                // Must be in left sidebar area and not in top navigation
+                if (rect.left < window.innerWidth * 0.3 && rect.top > 120) {
+                    // Find appropriate container to hide
+                    let container = element;
+                    for (let i = 0; i < 5; i++) {
+                        const parent = container.parentElement;
+                        if (!parent) break;
+                        
+                        // Safety checks
+                        if (parent.tagName === 'BODY' || 
+                            parent.getAttribute('role') === 'main') {
+                            break;
+                        }
+                        
+                        // Check if parent contains profile info or shortcuts
+                        const parentText = (parent.innerText || parent.textContent || '').toLowerCase();
+                        if (parentText.includes('md. arafatuzzaman') || 
+                            parentText.includes('shortcuts') ||
+                            parentText.includes('friends')) {
+                            break;
+                        }
+                        
+                        container = parent;
+                        
+                        // Good container size for a menu item
+                        if (container.offsetHeight > 35 && container.offsetHeight < 120) {
+                            break;
+                        }
                     }
                     
-                    const containerText = (container.innerText || container.textContent || '').toLowerCase();
-                    
-                    // Don't hide if it contains profile info or shortcuts
-                    if (containerText.includes('md. arafatuzzaman') || 
-                        containerText.includes('shortcuts') ||
-                        containerText.includes('friends')) {
-                        break;
-                    }
-                    
-                    // Check if this is a left sidebar menu item
-                    if (containerText.includes(itemName.toLowerCase()) &&
-                        container.offsetHeight > 20 && 
-                        container.offsetHeight < 100 &&
-                        container.offsetWidth < 300) {
-                        container.style.display = 'none';
-                        console.log(`Hidden left sidebar item: ${itemName}`, container);
-                        return;
-                    }
+                    container.style.display = 'none';
+                    console.log(`Facebook Cleaner: Hidden "${targetText}" from left sidebar`, container);
                 }
             }
         });
     });
     
-    // Method 3: Target left sidebar by common data attributes and ARIA labels
+    // Method 2: Target elements with specific Facebook data attributes in left sidebar
     const leftSidebarSelectors = [
+        '[data-pagelet*="LeftRail"]',
+        '[data-pagelet*="left_rail"]', 
         '[data-testid*="left_nav"]',
-        '[data-testid*="sidebar"]',
-        '[aria-label*="See more"]',
-        '[aria-label*="Video"]',
-        '[aria-label*="Groups"]',
-        '[aria-label*="Marketplace"]',
-        '[aria-label*="Gaming"]',
-        '[aria-label*="Pages"]'
+        '[data-testid*="sidebar"]'
     ];
     
     leftSidebarSelectors.forEach(selector => {
-        document.querySelectorAll(selector).forEach(element => {
-            const text = (element.innerText || element.textContent || '').toLowerCase();
-            // Don't hide profile or friends or shortcuts
-            if (!text.includes('md. arafatuzzaman') && 
-                !text.includes('friends') && 
-                !text.includes('shortcuts') &&
-                !text.includes('home')) {
-                element.style.display = 'none';
-                console.log('Hidden left sidebar by selector:', selector, element);
-            }
+        document.querySelectorAll(selector).forEach(sidebar => {
+            // Look for navigation items within the left sidebar
+            sidebar.querySelectorAll('a, div').forEach(item => {
+                const text = (item.innerText || item.textContent || '').toLowerCase().trim();
+                const hasIcon = item.querySelector('svg, img, i') !== null;
+                
+                // Target items that look like navigation menu items
+                if (hasIcon && item.offsetHeight > 25 && item.offsetHeight < 100) {
+                    const shouldHide = [
+                        'groups', 'pages', 'marketplace', 'gaming', 'video', 'events',
+                        'memories', 'saved', 'see more', 'climate science', 'ad preferences',
+                        'fundraisers', 'blood donations', 'crisis response', 'community help'
+                    ].some(keyword => text.includes(keyword));
+                    
+                    const shouldPreserve = [
+                        'home', 'friends', 'shortcuts', 'md. arafatuzzaman'
+                    ].some(keyword => text.includes(keyword));
+                    
+                    if (shouldHide && !shouldPreserve) {
+                        item.style.display = 'none';
+                        console.log(`Facebook Cleaner: Hidden sidebar item: "${text}"`, item);
+                    }
+                }
+            });
         });
     });
     
-    // Method 4: Hide navigation menu items by looking for icons and text patterns
-    document.querySelectorAll('a, div').forEach(element => {
-        const text = element.innerText || element.textContent || '';
-        const hasIcon = element.querySelector('svg, img, i') !== null;
-        
-        // Look for left sidebar navigation items (have icons + text)
-        if (hasIcon && 
-            element.offsetHeight > 30 && 
-            element.offsetHeight < 80 &&
-            element.offsetWidth > 100 &&
-            element.offsetWidth < 300) {
+    // Method 3: Use CSS-like targeting for specific left navigation structure
+    setTimeout(() => {
+        // Target the common left sidebar navigation structure
+        const leftNavs = document.querySelectorAll('div[role="navigation"]');
+        leftNavs.forEach(nav => {
+            const rect = nav.getBoundingClientRect();
             
-            const textLower = text.toLowerCase();
-            
-            // Skip if it's important navigation
-            if (textLower.includes('home') || 
-                textLower.includes('friends') ||
-                textLower.includes('md. arafatuzzaman') ||
-                textLower.includes('shortcuts')) {
-                return;
+            // Must be on the left side and not the top navigation
+            if (rect.left < 300 && rect.top > 100) {
+                nav.querySelectorAll('a').forEach(link => {
+                    const text = link.textContent.toLowerCase().trim();
+                    
+                    const itemsToHide = [
+                        'groups', 'pages', 'marketplace', 'gaming', 'watch', 'video',
+                        'events', 'memories', 'saved', 'see more', 'ad preferences'
+                    ];
+                    
+                    const itemsToKeep = [
+                        'home', 'friends', 'shortcuts', 'md. arafatuzzaman'
+                    ];
+                    
+                    if (itemsToHide.some(item => text.includes(item)) && 
+                        !itemsToKeep.some(item => text.includes(item))) {
+                        
+                        // Hide the parent container that includes icon and text
+                        let container = link.closest('div[role="none"], li, div');
+                        if (container && container !== nav) {
+                            container.style.display = 'none';
+                            console.log(`Facebook Cleaner: Hidden nav item: "${text}"`, container);
+                        }
+                    }
+                });
             }
-            
-            // Hide if it matches left sidebar menu items
-            if (textLower.includes('professional dashboard') ||
-                textLower.includes('groups') ||
-                textLower.includes('video') ||
-                textLower.includes('feeds') ||
-                textLower.includes('marketplace') ||
-                textLower.includes('see more') ||
-                textLower.includes('pages') ||
-                textLower.includes('gaming') ||
-                textLower.includes('events') ||
-                textLower.includes('memories') ||
-                textLower.includes('saved')) {
-                element.style.display = 'none';
-                console.log('Hidden left sidebar nav item:', textLower, element);
-            }
-        }
-    });
+        });
+    }, 1000);
 }
 
 // Hide sections based on settings
 function hideFacebookNoise() {
     try {
         console.log('Facebook Cleaner: Starting to hide sections with settings:', settings);
+        console.log('Facebook Cleaner: Current page DOM elements count:', document.querySelectorAll('*').length);
         
         if (settings.hidePeopleYouMayKnow) {
+            console.log('Facebook Cleaner: Attempting to hide People You May Know');
             hideSectionByHeader('People you may know');
         }
         if (settings.hideReels) {
+            console.log('Facebook Cleaner: Attempting to hide Reels');
             hideSectionByHeader('Reels');
             hideReels(); // Additional Reels hiding
         }
@@ -465,6 +513,7 @@ function hideFacebookNoise() {
             hideFriendRequestsSection(); // Enhanced friend requests hiding
         }
         if (settings.hideBirthdays) {
+            console.log('Facebook Cleaner: Attempting to hide Birthdays');
             hideSectionByHeader('Birthdays');
         }
         if (settings.hideContacts) {
@@ -473,6 +522,7 @@ function hideFacebookNoise() {
             hideContactsSection(); // Enhanced contacts hiding
         }
         if (settings.hideLeftSidebar) {
+            console.log('Facebook Cleaner: Attempting to clean left sidebar');
             hideLeftSidebarSections(); // Clean up left sidebar
         }
         
@@ -483,25 +533,149 @@ function hideFacebookNoise() {
 }
 
 // Initialize extension and load settings
+console.log('Facebook Cleaner: Initializing...');
 loadSettings();
 
-// Run immediately when page loads
-setTimeout(() => {
-    hideFacebookNoise();
-}, 1000);
+// Wait for page to be more fully loaded before running
+function waitForPageLoad() {
+    console.log('Facebook Cleaner: Waiting for page to load...');
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Facebook Cleaner: DOM Content Loaded');
+            setTimeout(() => {
+                hideFacebookNoise();
+            }, 2000);
+        });
+    } else {
+        console.log('Facebook Cleaner: Document already loaded');
+        setTimeout(() => {
+            hideFacebookNoise();
+        }, 2000);
+    }
+}
 
-// Run on DOM changes with more aggressive monitoring
-const observer = new MutationObserver(() => {
+// Run initialization
+waitForPageLoad();
+
+// Also run after a longer delay to catch dynamically loaded content
+setTimeout(() => {
+    console.log('Facebook Cleaner: Running delayed execution...');
+    hideFacebookNoise();
+}, 5000);
+
+// Add a global function for manual testing
+window.testFacebookCleaner = function() {
+    console.log('Facebook Cleaner: Manual test triggered');
+    console.log('Facebook Cleaner: Current settings:', settings);
+    hideFacebookNoise();
+};
+
+// Add a specific function to aggressively test left sidebar cleanup
+window.testLeftSidebarCleanup = function() {
+    console.log('Facebook Cleaner: Testing left sidebar cleanup specifically...');
+    
+    // Force enable left sidebar cleanup for testing
+    const originalSetting = settings.hideLeftSidebar;
+    settings.hideLeftSidebar = true;
+    
+    hideLeftSidebarSections();
+    
+    // Restore original setting
+    settings.hideLeftSidebar = originalSetting;
+    
+    console.log('Facebook Cleaner: Left sidebar cleanup test completed');
+};
+
+// Add a function to check what elements are actually on the page
+window.debugFacebookElements = function() {
+    console.log('=== Facebook Elements Debug ===');
+    console.log('Total elements:', document.querySelectorAll('*').length);
+    
+    // Check for common Facebook sections
+    const sectionsToCheck = ['People you may know', 'Reels', 'Friend requests', 'Birthdays', 'Contacts'];
+    
+    sectionsToCheck.forEach(section => {
+        const elements = Array.from(document.querySelectorAll('*')).filter(el => 
+            el.innerText && el.innerText.toLowerCase().includes(section.toLowerCase())
+        );
+        console.log(`Elements containing "${section}":`, elements.length);
+        if (elements.length > 0) {
+            console.log(`Sample "${section}" elements:`, elements.slice(0, 3));
+        }
+    });
+    
+    console.log('Elements with data-pagelet:', document.querySelectorAll('[data-pagelet]').length);
+    console.log('Elements with role="region":', document.querySelectorAll('[role="region"]').length);
+    
+    // Debug left sidebar specifically
+    console.log('=== Left Sidebar Debug ===');
+    const leftNavs = document.querySelectorAll('div[role="navigation"]');
+    console.log('Navigation elements found:', leftNavs.length);
+    
+    leftNavs.forEach((nav, index) => {
+        const rect = nav.getBoundingClientRect();
+        console.log(`Nav ${index}: left=${rect.left}, top=${rect.top}, text="${nav.textContent.substring(0, 100)}"`);
+        
+        if (rect.left < 300 && rect.top > 100) {
+            console.log(`  ^ This is likely a left sidebar navigation`);
+            const links = nav.querySelectorAll('a');
+            console.log(`  Links found: ${links.length}`);
+            links.forEach((link, linkIndex) => {
+                console.log(`    Link ${linkIndex}: "${link.textContent.trim()}"`);
+            });
+        }
+    });
+    
+    console.log('=== End Debug ===');
+};
+
+console.log('Facebook Cleaner: Debug functions available:');
+console.log('- window.testFacebookCleaner()');
+console.log('- window.testLeftSidebarCleanup()'); 
+console.log('- window.debugFacebookElements()');
+
+// Run on DOM changes with throttling to prevent excessive calls
+let observerTimeout;
+const observer = new MutationObserver((mutations) => {
+    // Only process if we have settings that would hide something
     if (settings.hidePeopleYouMayKnow || settings.hideReels || 
-        settings.hideFriendRequests || settings.hideBirthdays || settings.hideContacts || settings.hideLeftSidebar) {
-        hideFacebookNoise();
+        settings.hideFriendRequests || settings.hideBirthdays || 
+        settings.hideContacts || settings.hideLeftSidebar) {
+        
+        // Throttle the calls to prevent excessive processing
+        clearTimeout(observerTimeout);
+        observerTimeout = setTimeout(() => {
+            console.log('Facebook Cleaner: DOM changed, re-running hide functions...');
+            hideFacebookNoise();
+        }, 500);
     }
 });
-observer.observe(document.body, {childList: true, subtree: true});
 
-// Additional periodic check for left sidebar specifically (runs every 2 seconds)
+// Start observing with more specific options
+if (document.body) {
+    observer.observe(document.body, {
+        childList: true, 
+        subtree: true,
+        attributes: false // Don't watch attribute changes, only structure changes
+    });
+    console.log('Facebook Cleaner: MutationObserver started');
+} else {
+    console.log('Facebook Cleaner: Body not available yet, will start observer later');
+    document.addEventListener('DOMContentLoaded', () => {
+        observer.observe(document.body, {
+            childList: true, 
+            subtree: true,
+            attributes: false
+        });
+        console.log('Facebook Cleaner: MutationObserver started after DOMContentLoaded');
+    });
+}
+
+// Additional periodic check with longer intervals to be less aggressive
 setInterval(() => {
-    if (settings.hideLeftSidebar) {
-        hideLeftSidebarSections();
+    if (settings.hideLeftSidebar || settings.hidePeopleYouMayKnow || settings.hideReels) {
+        console.log('Facebook Cleaner: Periodic check...');
+        hideFacebookNoise();
     }
-}, 2000);
+}, 10000); // Check every 10 seconds instead of 2

@@ -1,12 +1,13 @@
 // Load current settings and update UI
 document.addEventListener('DOMContentLoaded', function() {
     // Load settings from storage
-    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts'], function(result) {
+    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar'], function(result) {
         document.getElementById('hidePeopleYouMayKnow').checked = result.hidePeopleYouMayKnow !== false;
         document.getElementById('hideReels').checked = result.hideReels !== false;
         document.getElementById('hideFriendRequests').checked = result.hideFriendRequests === true;
         document.getElementById('hideBirthdays').checked = result.hideBirthdays === true;
         document.getElementById('hideContacts').checked = result.hideContacts === true;
+        document.getElementById('hideLeftSidebar').checked = result.hideLeftSidebar !== false;
     });
     
     // Add click event listeners to all setting rows
@@ -20,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add change event listeners to checkboxes
-    const checkboxes = ['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts'];
+    const checkboxes = ['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar'];
     checkboxes.forEach(function(id) {
         const checkbox = document.getElementById(id);
         if (checkbox) {
@@ -37,7 +38,8 @@ function saveSettings() {
         hideReels: document.getElementById('hideReels').checked,
         hideFriendRequests: document.getElementById('hideFriendRequests').checked,
         hideBirthdays: document.getElementById('hideBirthdays').checked,
-        hideContacts: document.getElementById('hideContacts').checked
+        hideContacts: document.getElementById('hideContacts').checked,
+        hideLeftSidebar: document.getElementById('hideLeftSidebar').checked
     };
     
     // Save to storage

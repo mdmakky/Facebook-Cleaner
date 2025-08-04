@@ -4,18 +4,20 @@ const settings = {
     hideReels: true,
     hideFriendRequests: false,
     hideBirthdays: false,
-    hideContacts: false
+    hideContacts: false,
+    hideLeftSidebar: true // New setting for left sidebar cleanup
 };
 
 // Load settings from chrome extension storage
 function loadSettings() {
     if (typeof chrome !== 'undefined' && chrome.storage) {
-        chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts'], (result) => {
+        chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar'], (result) => {
             settings.hidePeopleYouMayKnow = result.hidePeopleYouMayKnow !== undefined ? result.hidePeopleYouMayKnow : true;
             settings.hideReels = result.hideReels !== undefined ? result.hideReels : true;
             settings.hideFriendRequests = result.hideFriendRequests !== undefined ? result.hideFriendRequests : false;
             settings.hideBirthdays = result.hideBirthdays !== undefined ? result.hideBirthdays : false;
             settings.hideContacts = result.hideContacts !== undefined ? result.hideContacts : false;
+            settings.hideLeftSidebar = result.hideLeftSidebar !== undefined ? result.hideLeftSidebar : true;
             hideFacebookNoise();
         });
     } else {
@@ -270,6 +272,181 @@ function hideContactsSection() {
     });
 }
 
+// Function to clean up left sidebar - keep only profile and shortcuts
+function hideLeftSidebarSections() {
+    if (!settings.hideLeftSidebar) return;
+    
+    console.log('Facebook Cleaner: Cleaning left sidebar...');
+    
+    // Method 1: Target the left sidebar navigation items
+    document.querySelectorAll('div').forEach(element => {
+        // Check if this looks like a left sidebar element
+        const rect = element.getBoundingClientRect();
+        const isLeftSide = rect.left < window.innerWidth * 0.4; // Elements on the left 40% of screen
+        
+        if (isLeftSide && element.offsetHeight > 30 && element.offsetHeight < 200) {
+            const text = (element.innerText || element.textContent || '').toLowerCase();
+            
+            // Preserve these sections
+            const shouldPreserve = (
+                text.includes('md. arafatuzzaman') || // Your name/profile
+                text.includes('friends') || // Friends section 
+                text.includes('your shortcuts') ||
+                text.includes('shortcuts') ||
+                text.includes('home') ||
+                text.length < 5 // Very short text, might be important
+            );
+            
+            // Hide these sections
+            const shouldHide = (
+                text.includes('professional dashboard') ||
+                text.includes('groups') ||
+                text.includes('video') ||
+                text.includes('feeds') ||
+                text.includes('marketplace') ||
+                text.includes('see more') ||
+                text.includes('pages') ||
+                text.includes('gaming') ||
+                text.includes('events') ||
+                text.includes('memories') ||
+                text.includes('saved') ||
+                text.includes('climate science') ||
+                text.includes('recent') ||
+                text.includes('most recent') ||
+                text.includes('ad preferences') ||
+                text.includes('fundraisers')
+            );
+            
+            if (shouldHide && !shouldPreserve) {
+                element.style.display = 'none';
+                console.log('Hidden left sidebar element:', text.substring(0, 50), element);
+            }
+        }
+    });
+    
+    // Method 2: Hide specific left sidebar menu items by text content
+    const leftSidebarItemsToHide = [
+        'Professional dashboard',
+        'Groups',
+        'Video', 
+        'Feeds',
+        'Marketplace',
+        'See more',
+        'Pages',
+        'Gaming',
+        'Events',
+        'Memories',
+        'Saved',
+        'Recent',
+        'Ad preferences',
+        'Fundraisers'
+    ];
+    
+    leftSidebarItemsToHide.forEach(itemName => {
+        document.querySelectorAll('*').forEach(element => {
+            const text = element.innerText || element.textContent || '';
+            if (text.trim() === itemName) {
+                let container = element;
+                for (let i = 0; i < 6; i++) {
+                    if (!container || !container.parentElement) break;
+                    container = container.parentElement;
+                    
+                    // Safety checks
+                    if (container.getAttribute('role') === 'main' || 
+                        container.tagName === 'BODY') {
+                        break;
+                    }
+                    
+                    const containerText = (container.innerText || container.textContent || '').toLowerCase();
+                    
+                    // Don't hide if it contains profile info or shortcuts
+                    if (containerText.includes('md. arafatuzzaman') || 
+                        containerText.includes('shortcuts') ||
+                        containerText.includes('friends')) {
+                        break;
+                    }
+                    
+                    // Check if this is a left sidebar menu item
+                    if (containerText.includes(itemName.toLowerCase()) &&
+                        container.offsetHeight > 20 && 
+                        container.offsetHeight < 100 &&
+                        container.offsetWidth < 300) {
+                        container.style.display = 'none';
+                        console.log(`Hidden left sidebar item: ${itemName}`, container);
+                        return;
+                    }
+                }
+            }
+        });
+    });
+    
+    // Method 3: Target left sidebar by common data attributes and ARIA labels
+    const leftSidebarSelectors = [
+        '[data-testid*="left_nav"]',
+        '[data-testid*="sidebar"]',
+        '[aria-label*="See more"]',
+        '[aria-label*="Video"]',
+        '[aria-label*="Groups"]',
+        '[aria-label*="Marketplace"]',
+        '[aria-label*="Gaming"]',
+        '[aria-label*="Pages"]'
+    ];
+    
+    leftSidebarSelectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(element => {
+            const text = (element.innerText || element.textContent || '').toLowerCase();
+            // Don't hide profile or friends or shortcuts
+            if (!text.includes('md. arafatuzzaman') && 
+                !text.includes('friends') && 
+                !text.includes('shortcuts') &&
+                !text.includes('home')) {
+                element.style.display = 'none';
+                console.log('Hidden left sidebar by selector:', selector, element);
+            }
+        });
+    });
+    
+    // Method 4: Hide navigation menu items by looking for icons and text patterns
+    document.querySelectorAll('a, div').forEach(element => {
+        const text = element.innerText || element.textContent || '';
+        const hasIcon = element.querySelector('svg, img, i') !== null;
+        
+        // Look for left sidebar navigation items (have icons + text)
+        if (hasIcon && 
+            element.offsetHeight > 30 && 
+            element.offsetHeight < 80 &&
+            element.offsetWidth > 100 &&
+            element.offsetWidth < 300) {
+            
+            const textLower = text.toLowerCase();
+            
+            // Skip if it's important navigation
+            if (textLower.includes('home') || 
+                textLower.includes('friends') ||
+                textLower.includes('md. arafatuzzaman') ||
+                textLower.includes('shortcuts')) {
+                return;
+            }
+            
+            // Hide if it matches left sidebar menu items
+            if (textLower.includes('professional dashboard') ||
+                textLower.includes('groups') ||
+                textLower.includes('video') ||
+                textLower.includes('feeds') ||
+                textLower.includes('marketplace') ||
+                textLower.includes('see more') ||
+                textLower.includes('pages') ||
+                textLower.includes('gaming') ||
+                textLower.includes('events') ||
+                textLower.includes('memories') ||
+                textLower.includes('saved')) {
+                element.style.display = 'none';
+                console.log('Hidden left sidebar nav item:', textLower, element);
+            }
+        }
+    });
+}
+
 // Hide sections based on settings
 function hideFacebookNoise() {
     try {
@@ -295,6 +472,9 @@ function hideFacebookNoise() {
             hideSectionByHeader('Contacts');
             hideContactsSection(); // Enhanced contacts hiding
         }
+        if (settings.hideLeftSidebar) {
+            hideLeftSidebarSections(); // Clean up left sidebar
+        }
         
         console.log('Facebook Cleaner: Finished hiding sections');
     } catch (error) {
@@ -313,8 +493,15 @@ setTimeout(() => {
 // Run on DOM changes with more aggressive monitoring
 const observer = new MutationObserver(() => {
     if (settings.hidePeopleYouMayKnow || settings.hideReels || 
-        settings.hideFriendRequests || settings.hideBirthdays || settings.hideContacts) {
+        settings.hideFriendRequests || settings.hideBirthdays || settings.hideContacts || settings.hideLeftSidebar) {
         hideFacebookNoise();
     }
 });
 observer.observe(document.body, {childList: true, subtree: true});
+
+// Additional periodic check for left sidebar specifically (runs every 2 seconds)
+setInterval(() => {
+    if (settings.hideLeftSidebar) {
+        hideLeftSidebarSections();
+    }
+}, 2000);

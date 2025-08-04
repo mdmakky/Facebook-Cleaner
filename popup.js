@@ -1,8 +1,9 @@
 // Load current settings and update UI
 document.addEventListener('DOMContentLoaded', function() {
     // Load settings from storage
-    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar', 'hideWatch', 'hideMarketplace', 'hideGroups', 'hideGaming'], function(result) {
+    chrome.storage.sync.get(['hidePeopleYouMayKnow', 'hideGroupSuggestions', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar', 'hideWatch', 'hideMarketplace', 'hideGroups', 'hideGaming'], function(result) {
         document.getElementById('hidePeopleYouMayKnow').checked = result.hidePeopleYouMayKnow !== false;
+        document.getElementById('hideGroupSuggestions').checked = result.hideGroupSuggestions !== false;
         document.getElementById('hideReels').checked = result.hideReels !== false;
         document.getElementById('hideFriendRequests').checked = result.hideFriendRequests === true;
         document.getElementById('hideBirthdays').checked = result.hideBirthdays === true;
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add change event listeners to checkboxes
-    const checkboxes = ['hidePeopleYouMayKnow', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar', 'hideWatch', 'hideMarketplace', 'hideGroups', 'hideGaming'];
+    const checkboxes = ['hidePeopleYouMayKnow', 'hideGroupSuggestions', 'hideReels', 'hideFriendRequests', 'hideBirthdays', 'hideContacts', 'hideLeftSidebar', 'hideWatch', 'hideMarketplace', 'hideGroups', 'hideGaming'];
     checkboxes.forEach(function(id) {
         const checkbox = document.getElementById(id);
         if (checkbox) {
@@ -39,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function saveSettings() {
     const settings = {
         hidePeopleYouMayKnow: document.getElementById('hidePeopleYouMayKnow').checked,
+        hideGroupSuggestions: document.getElementById('hideGroupSuggestions').checked,
         hideReels: document.getElementById('hideReels').checked,
         hideFriendRequests: document.getElementById('hideFriendRequests').checked,
         hideBirthdays: document.getElementById('hideBirthdays').checked,

@@ -10,124 +10,105 @@
         }
         
         body {
-            width: 350px;
-            max-height: 500px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
+            width: 380px;
+            max-height: 550px;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            color: #333;
             overflow-y: auto;
-        }
-        
-        .container {
-            padding: 25px;
-            position: relative;
+            border: 1px solid #ccc;
         }
         
         .header {
+            background: #4267B2;
+            color: white;
+            padding: 15px;
             text-align: center;
-            margin-bottom: 25px;
+            border-bottom: 2px solid #365899;
         }
         
         .logo {
-            font-size: 32px;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            font-size: 18px;
+            margin-bottom: 5px;
         }
         
         h1 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 3px;
         }
         
         .subtitle {
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0.9;
-            font-weight: 300;
         }
         
-        .settings-group {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        .container {
+            padding: 15px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: #e9ebee;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            font-size: 13px;
+            color: #4b4f56;
         }
         
         .setting {
             display: flex;
             align-items: center;
-            margin-bottom: 16px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
             cursor: pointer;
-            border: 1px solid transparent;
-            position: relative;
-            overflow: hidden;
         }
         
         .setting:last-child {
-            margin-bottom: 0;
+            border-bottom: none;
         }
         
         .setting:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        }
-        
-        .setting::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.6s;
-        }
-        
-        .setting:hover::before {
-            transform: translateX(100%);
+            background-color: #f8f9fa;
         }
         
         .setting-icon {
-            font-size: 18px;
+            font-size: 16px;
             margin-right: 12px;
-            min-width: 24px;
+            min-width: 20px;
             text-align: center;
         }
         
         .setting-content {
             flex: 1;
-            position: relative;
-            z-index: 1;
         }
         
         .setting-title {
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 2px;
+            color: #1d2129;
         }
         
         .setting-description {
             font-size: 11px;
-            opacity: 0.8;
-            font-weight: 300;
+            color: #65676b;
         }
         
-        /* Custom Toggle Switch */
         .toggle-switch {
             position: relative;
-            width: 48px;
+            width: 44px;
             height: 24px;
-            margin-left: 12px;
+            margin-left: 10px;
         }
         
         .toggle-switch input {
@@ -143,10 +124,10 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #ccc;
+            transition: 0.3s;
             border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid #bbb;
         }
         
         .slider:before {
@@ -157,37 +138,34 @@
             left: 2px;
             bottom: 2px;
             background: white;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.3s;
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
         
         input:checked + .slider {
-            background: rgba(76, 175, 80, 0.8);
-            border-color: rgba(76, 175, 80, 0.6);
+            background: #4267B2;
+            border-color: #365899;
         }
         
         input:checked + .slider:before {
-            transform: translateX(24px);
-            background: #4CAF50;
+            transform: translateX(20px);
         }
         
         .status {
             position: fixed;
-            top: 20px;
+            top: 10px;
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: rgba(76, 175, 80, 0.95);
+            transform: translateX(-50%) translateY(-50px);
+            background: #42b883;
             color: white;
-            padding: 12px 20px;
-            border-radius: 25px;
+            padding: 8px 16px;
+            border-radius: 4px;
             font-size: 12px;
             font-weight: 500;
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
         }
         
@@ -197,94 +175,131 @@
         }
         
         .status::before {
-            content: '✓';
-            margin-right: 6px;
-        }
-        
-        /* Floating particles animation */
-        .particle {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: float 6s infinite ease-in-out;
-        }
-        
-        .particle:nth-child(1) {
-            width: 8px;
-            height: 8px;
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-        
-        .particle:nth-child(2) {
-            width: 4px;
-            height: 4px;
-            top: 60%;
-            right: 15%;
-            animation-delay: 2s;
-        }
-        
-        .particle:nth-child(3) {
-            width: 6px;
-            height: 6px;
-            bottom: 30%;
-            left: 20%;
-            animation-delay: 4s;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 0.7;
-            }
-            50% {
-                transform: translateY(-20px) rotate(180deg);
-                opacity: 1;
-            }
+            content: '✓ ';
+            margin-right: 4px;
         }
         
         /* Scrollbar styling */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
         
         ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
+            background: #f1f1f1;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
+            background: #c1c1c1;
+            border-radius: 4px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
+            background: #a8a8a8;
         }
     </style>
 </head>
 <body>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
+    <div class="header">
+        <div class="logo">🧹</div>
+        <h1>Facebook Cleaner</h1>
+        <div class="subtitle">Clean up your Facebook interface</div>
+    </div>
     
     <div class="container">
-        <div class="header">
-            <div class="logo">🧹</div>
-            <h1>Facebook Cleaner</h1>
-            <div class="subtitle">Customize your Facebook experience</div>
+        <!-- Top Navigation Controls -->
+        <div class="section">
+            <div class="section-header">Top Navigation Bar</div>
+            
+            <div class="setting" data-setting="hideWatch">
+                <div class="setting-icon">�</div>
+                <div class="setting-content">
+                    <div class="setting-title">Watch</div>
+                    <div class="setting-description">Hide Watch tab from top navigation</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideWatch">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideMarketplace">
+                <div class="setting-icon">🛒</div>
+                <div class="setting-content">
+                    <div class="setting-title">Marketplace</div>
+                    <div class="setting-description">Hide Marketplace tab from top navigation</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideMarketplace">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideGroups">
+                <div class="setting-icon">👥</div>
+                <div class="setting-content">
+                    <div class="setting-title">Groups</div>
+                    <div class="setting-description">Hide Groups tab from top navigation</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideGroups">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideGaming">
+                <div class="setting-icon">�</div>
+                <div class="setting-content">
+                    <div class="setting-title">Gaming</div>
+                    <div class="setting-description">Hide Gaming tab from top navigation</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideGaming">
+                    <span class="slider"></span>
+                </div>
+            </div>
         </div>
         
-        <div class="settings-group">
+        <!-- Left Sidebar Controls -->
+        <div class="section">
+            <div class="section-header">Left Sidebar</div>
+            
+            <div class="setting" data-setting="hideLeftSidebar">
+                <div class="setting-icon">🧹</div>
+                <div class="setting-content">
+                    <div class="setting-title">Clean Left Sidebar</div>
+                    <div class="setting-description">Keep only profile and shortcuts</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideLeftSidebar">
+                    <span class="slider"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Sidebar & Feed Controls -->
+        <div class="section">
+            <div class="section-header">Feed & Right Sidebar</div>
+            
             <div class="setting" data-setting="hidePeopleYouMayKnow">
-                <div class="setting-icon">👥</div>
+                <div class="setting-icon">👤</div>
                 <div class="setting-content">
                     <div class="setting-title">People You May Know</div>
                     <div class="setting-description">Hide friend suggestions</div>
                 </div>
                 <div class="toggle-switch">
                     <input type="checkbox" id="hidePeopleYouMayKnow">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideGroupSuggestions">
+                <div class="setting-icon">👥</div>
+                <div class="setting-content">
+                    <div class="setting-title">Groups You May Join</div>
+                    <div class="setting-description">Hide group suggestions</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideGroupSuggestions">
                     <span class="slider"></span>
                 </div>
             </div>
@@ -333,66 +348,6 @@
                 </div>
                 <div class="toggle-switch">
                     <input type="checkbox" id="hideContacts">
-                    <span class="slider"></span>
-                </div>
-            </div>
-            
-            <div class="setting" data-setting="hideLeftSidebar">
-                <div class="setting-icon">🧹</div>
-                <div class="setting-content">
-                    <div class="setting-title">Clean Left Sidebar</div>
-                    <div class="setting-description">Keep only profile and shortcuts</div>
-                </div>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="hideLeftSidebar">
-                    <span class="slider"></span>
-                </div>
-            </div>
-            
-            <div class="setting" data-setting="hideWatch">
-                <div class="setting-icon">📺</div>
-                <div class="setting-content">
-                    <div class="setting-title">Watch</div>
-                    <div class="setting-description">Hide Watch tab from top navigation</div>
-                </div>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="hideWatch">
-                    <span class="slider"></span>
-                </div>
-            </div>
-            
-            <div class="setting" data-setting="hideMarketplace">
-                <div class="setting-icon">🛒</div>
-                <div class="setting-content">
-                    <div class="setting-title">Marketplace</div>
-                    <div class="setting-description">Hide Marketplace tab from top navigation</div>
-                </div>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="hideMarketplace">
-                    <span class="slider"></span>
-                </div>
-            </div>
-            
-            <div class="setting" data-setting="hideGroups">
-                <div class="setting-icon">👥</div>
-                <div class="setting-content">
-                    <div class="setting-title">Groups</div>
-                    <div class="setting-description">Hide Groups tab from top navigation</div>
-                </div>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="hideGroups">
-                    <span class="slider"></span>
-                </div>
-            </div>
-            
-            <div class="setting" data-setting="hideGaming">
-                <div class="setting-icon">🎮</div>
-                <div class="setting-content">
-                    <div class="setting-title">Gaming</div>
-                    <div class="setting-description">Hide Gaming tab from top navigation</div>
-                </div>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="hideGaming">
                     <span class="slider"></span>
                 </div>
             </div>

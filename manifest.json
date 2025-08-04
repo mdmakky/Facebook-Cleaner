@@ -3,11 +3,23 @@
   "name": "Facebook Cleaner",
   "version": "1.0",
   "description": "Hide Reels, Ads, People You May Know, and Suggested Groups on Facebook.",
+  
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  
   "content_scripts": [{
     "matches": ["https://www.facebook.com/*"],
     "js": ["content.js"],
     "run_at": "document_idle"
   }],
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Facebook Cleaner Settings"
+  },
+  
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

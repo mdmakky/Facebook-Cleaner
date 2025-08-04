@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 350px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .container {
+            padding: 25px;
+            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .settings-group {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .setting:last-child {
+            margin-bottom: 0;
+        }
+        
+        .setting:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .setting::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .setting:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .setting-icon {
+            font-size: 18px;
+            margin-right: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .setting-content {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .setting-title {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .setting-description {
+            font-size: 11px;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+        
+        /* Custom Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            margin-left: 12px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        input:checked + .slider {
+            background: rgba(76, 175, 80, 0.8);
+            border-color: rgba(76, 175, 80, 0.6);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+            background: #4CAF50;
+        }
+        
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(76, 175, 80, 0.95);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .status.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .status::before {
+            content: '✓';
+            margin-right: 6px;
+        }
+        
+        /* Floating particles animation */
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s infinite ease-in-out;
+        }
+        
+        .particle:nth-child(1) {
+            width: 8px;
+            height: 8px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .particle:nth-child(2) {
+            width: 4px;
+            height: 4px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+        
+        .particle:nth-child(3) {
+            width: 6px;
+            height: 6px;
+            bottom: 30%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 1;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="logo">🧹</div>
+            <h1>Facebook Cleaner</h1>
+            <div class="subtitle">Customize your Facebook experience</div>
+        </div>
+        
+        <div class="settings-group">
+            <div class="setting" data-setting="hidePeopleYouMayKnow">
+                <div class="setting-icon">👥</div>
+                <div class="setting-content">
+                    <div class="setting-title">People You May Know</div>
+                    <div class="setting-description">Hide friend suggestions</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hidePeopleYouMayKnow">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideReels">
+                <div class="setting-icon">🎬</div>
+                <div class="setting-content">
+                    <div class="setting-title">Reels</div>
+                    <div class="setting-description">Hide short video content</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideReels">
+                    <span class="slider"></span>
+                </div>
+            </div>
+            
+            <div class="setting" data-setting="hideSponsored">
+                <div class="setting-icon">💰</div>
+                <div class="setting-content">
+                    <div class="setting-title">Sponsored Content</div>
+                    <div class="setting-description">Hide ads and promotions</div>
+                </div>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="hideSponsored">
+                    <span class="slider"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="status" id="status">Settings saved successfully!</div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
